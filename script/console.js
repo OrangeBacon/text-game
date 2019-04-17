@@ -7,49 +7,72 @@ class DOMConsole {
     this.charWidth = 15;
     this.charHeight = 20;
     this.onResize = () => { };
+    this.currentLineCount = 0;
     this.calcSize();
   }
 
   set onResize(value) {
-    this.onResizeFn = value;
-    this.onResizeFnDebounce = debounce(value, 250);
+    this.onResizeFn = () => {
+      if (this.lines > this.currentLineCount) {
+        const val = this.lines - this.currentLineCount;
+        for (let i = 0; i < val; i++) {
+          const item = document.createElement("span");
+          item.classList.add("line");
+          this.screen.appendChild(item);
+        }
+      } else if (this.lines < this.currentLineCount) {
+        const val = this.currentLineCount - this.lines;
+        for (let i = 0; i < val; i++) {
+          this.screen.removeChild(this.screen.children[this.screen.children.length - 1]);
+        }
+      }
+      this.currentLineCount = this.lines;
+      value();
+    };
+    this.onResizeFnDebounce = debounce(this.onResizeFn, 100);
   }
 
   set textSize(value) {
+    this.oldFontSize = this.charHeight
     this.charWidth = getTextWidth("m", `${value - 1}px monospace`);
     this.charHeight = value;
     this.screen.style.fontSize = `${value - 1}px`;
     this.screen.style.lineHeight = `${value}px`;
-    this.calcSize();
+    this.calcSize(false);
   }
 
-  calcSize() {
+  calcSize(debounce = true) {
     if (this.pixelWidth == this.node.clientWidth &&
       this.pixelHeight == this.node.clientHeight &&
       this.oldFontSize == this.charHeight) {
       return;
     }
+    this.oldFontSize = this.charHeight;
     this.pixelWidth = this.node.clientWidth;
     this.pixelHeight = this.node.clientHeight;
     this.columns = (this.node.clientWidth - (this.node.clientWidth % this.charWidth)) / this.charWidth;
     this.lines = (this.node.clientHeight - (this.node.clientHeight % this.charHeight)) / this.charHeight;
-    this.node.childNodes[0].style.width = `${this.columns * this.charWidth}px`;
-    this.node.childNodes[0].style.height = `${this.lines * this.charHeight}px`;
-    this.onResizeFnDebounce();
+    this.screen.style.width = `${this.columns * this.charWidth}px`;
+    this.screen.style.height = `${this.lines * this.charHeight}px`;
+    if(debounce) {
+      this.onResizeFnDebounce();
+    } else {
+      this.onResizeFn();
+    }
   }
 
   render() {
     this.calcSize();
   }
 
-  writeArray(arr) {
-    this.screen.innerText = "";
-    arr.forEach(line => {
-      const lineEl = document.createElement("span");
-      lineEl.classList.add("line");
-      lineEl.append(document.createTextNode(line.join("") + "\n"));
-      this.screen.append(lineEl);
-    });
+  writeArray(arr, start = 0) {
+    for (let i = start; i < arr.length; i++) {
+      if(i < this.lines){
+        this.screen.children[i].innerText = arr[i].join("");
+      } else {
+        break;
+      }
+    }
   }
 }
 

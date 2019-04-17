@@ -4,7 +4,7 @@ html, body {
 }
 
 .console {
-    background-color: #333;
+    background-color: white;
     width: 100vw;
     height: 100vh;
     display: grid;
@@ -17,6 +17,5 @@ html, body {
     overflow: hidden;
 }
 .line {
-    line-height: inherit;
-    font-size: inherit;
+    display: block;
 }
