@@ -12,4 +12,6 @@ html, body {
 .screen {
     margin: auto;
     background-color: black;
+    color: white;
+    font-family: monospace;
 }
